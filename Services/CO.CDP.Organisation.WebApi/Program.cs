@@ -17,7 +17,6 @@ using CO.CDP.OrganisationInformation;
 using CO.CDP.OrganisationInformation.Persistence;
 using CO.CDP.OrganisationInformation.Persistence.Interfaces;
 using CO.CDP.OrganisationInformation.Persistence.Repositories;
-using CO.CDP.OrganisationSync;
 using CO.CDP.WebApi.Foundation;
 using Microsoft.FeatureManagement;
 using Npgsql;
@@ -41,7 +40,6 @@ builder.Services.AddSwaggerGen(options => { options.DocumentOrganisationApi(buil
 builder.Services.AddAutoMapper(typeof(WebApiToPersistenceProfile));
 
 var connectionString = ConnectionStringHelper.GetConnectionString(builder.Configuration, "OrganisationInformationDatabase");
-builder.Services.AddOrganisationMembershipSync(connectionString);
 builder.Services.AddHealthChecks().AddNpgSql(sp => sp.GetRequiredService<NpgsqlDataSource>());
 
 builder.Services.AddScoped<IIdentifierService, IdentifierService>();

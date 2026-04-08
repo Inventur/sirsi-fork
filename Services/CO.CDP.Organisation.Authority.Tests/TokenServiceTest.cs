@@ -9,7 +9,6 @@ using Moq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using ApiClient = CO.CDP.UserManagement.WebApiClient;
 
 namespace CO.CDP.Organisation.Authority.Tests;
 
@@ -23,7 +22,6 @@ public class TokenServiceTest
     private readonly Mock<IConfigurationService> _configServiceMock = new();
     private readonly Mock<IPersonRepository> _personRepositoryMock = new();
     private readonly Mock<IAuthorityRepository> _authorityRepositoryMock = new();
-    private readonly Mock<ApiClient.UserManagementClient> _userManagementClientMock = new("http://localhost", new HttpClient());
     private readonly TokenService _tokenService;
 
     public TokenServiceTest()
@@ -33,7 +31,6 @@ public class TokenServiceTest
             _configServiceMock.Object,
              _personRepositoryMock.Object,
             _authorityRepositoryMock.Object,
-            _userManagementClientMock.Object,
             Options.Create(new FeaturesOptions { ClaimsApiEnabled = false }));
     }
 
@@ -59,51 +56,6 @@ public class TokenServiceTest
         claims.FirstOrDefault(c => c.Type == "role")?.Value.Should().Be(string.Empty);
         claims.FirstOrDefault(c => c.Type == "cdp_claims").Should().BeNull();
 
-        _userManagementClientMock.Verify(c => c.UsersAsync(It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task CreateToken_WhenClaimsFlagOn_IncludesCdpClaimsClaim()
-    {
-        GenerateTempKeys(out var rsaPrivateKey, out var resPublicParams);
-        _configServiceMock.Setup(c => c.GetAuthorityConfiguration())
-            .Returns(new AuthorityConfiguration { Issuer = _issuer, RsaPrivateKey = rsaPrivateKey, RsaPublicParams = resPublicParams });
-
-        var userClaims = new ApiClient.UserClaims([], "urn:test");
-        _userManagementClientMock.Setup(c => c.UsersAsync(_userUrn))
-            .ReturnsAsync(userClaims);
-
-        var tokenService = CreateTokenService(claimsApiEnabled: true);
-        var result = await tokenService.CreateToken(_userUrn);
-
-        result.Should().NotBeNull();
-        var claims = GetClaims(result.AccessToken);
-        claims.FirstOrDefault(c => c.Type == "sub")?.Value.Should().Be(_userUrn);
-
-        var cdpClaims = claims.FirstOrDefault(c => c.Type == "cdp_claims");
-        cdpClaims.Should().NotBeNull();
-        cdpClaims!.Value.Should().Contain("urn:test");
-
-        _userManagementClientMock.Verify(c => c.UsersAsync(_userUrn), Times.Once);
-    }
-
-    [Fact]
-    public async Task CreateToken_WhenClaimsFlagOn_AndUserManagementCallFails_ReturnsTokenWithoutCdpClaims()
-    {
-        GenerateTempKeys(out var rsaPrivateKey, out var resPublicParams);
-        _configServiceMock.Setup(c => c.GetAuthorityConfiguration())
-            .Returns(new AuthorityConfiguration { Issuer = _issuer, RsaPrivateKey = rsaPrivateKey, RsaPublicParams = resPublicParams });
-
-        _userManagementClientMock.Setup(c => c.UsersAsync(_userUrn))
-            .ThrowsAsync(new Exception("API failure"));
-
-        var tokenService = CreateTokenService(claimsApiEnabled: true);
-        var result = await tokenService.CreateToken(_userUrn);
-
-        result.Should().NotBeNull();
-        var claims = GetClaims(result.AccessToken);
-        claims.FirstOrDefault(c => c.Type == "sub")?.Value.Should().Be(_userUrn);
-        claims.FirstOrDefault(c => c.Type == "cdp_claims").Should().BeNull();
     }
 
     [Fact]
@@ -265,7 +217,6 @@ public class TokenServiceTest
             _configServiceMock.Object,
             _personRepositoryMock.Object,
             _authorityRepositoryMock.Object,
-            _userManagementClientMock.Object,
             Options.Create(new FeaturesOptions { ClaimsApiEnabled = claimsApiEnabled }));
     }
 }
