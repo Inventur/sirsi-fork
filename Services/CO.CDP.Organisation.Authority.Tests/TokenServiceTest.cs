@@ -55,7 +55,6 @@ public class TokenServiceTest
         claims.FirstOrDefault(c => c.Type == "channel")?.Value.Should().Be("one-login");
         claims.FirstOrDefault(c => c.Type == "role")?.Value.Should().Be(string.Empty);
         claims.FirstOrDefault(c => c.Type == "cdp_claims").Should().BeNull();
-
     }
 
     [Fact]
@@ -208,15 +207,5 @@ public class TokenServiceTest
         var tokenHandler = new JwtSecurityTokenHandler();
         var jsonToken = (JwtSecurityToken)tokenHandler.ReadToken(token);
         return jsonToken.Claims;
-    }
-
-    private TokenService CreateTokenService(bool claimsApiEnabled)
-    {
-        return new TokenService(
-            _loggerMock.Object,
-            _configServiceMock.Object,
-            _personRepositoryMock.Object,
-            _authorityRepositoryMock.Object,
-            Options.Create(new FeaturesOptions { ClaimsApiEnabled = claimsApiEnabled }));
     }
 }

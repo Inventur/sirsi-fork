@@ -13,6 +13,13 @@ locals {
     production  = "www.find-tender.service.gov.uk"
   }
 
+  fts_redirect_domains = {
+    development = "fts-app.${var.public_domain}"
+    staging     = "www-staging.find-tender.service.gov.uk"
+    integration = "www-tpp.find-tender.service.gov.uk"
+    production  = "www.find-tender.service.gov.uk"
+  }
+
   fts_secrets = {
     email_contactus                           = "${local.fts_secrets_arn}:CONTACTUS_EMAIL::"
     email_e_enablement                        = "${local.fts_secrets_arn}:EENABLEMENT_EMAIL::"
@@ -77,7 +84,7 @@ locals {
     srsi_tenant_lookup_endpoint           = "https://tenant.${var.public_domain}/tenant/lookup"
     ssl_service                           = true
     submission_log_globally_enabled       = contains(["integration"], var.environment) ? true : false
-    uk17_enabled                          = var.is_production ? false : true
+    uk17_enabled                          = true
     uk17_enable_current_reporting_periods = var.is_production ? false : true
     uk9_enabled                           = true
     uk11_240_enabled                      = true

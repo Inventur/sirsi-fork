@@ -33,6 +33,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddTransient<ServiceAccountTokenHandler>();
 
 
+
 if (Assembly.GetEntryAssembly().IsRunAs("CO.CDP.Organisation.Authority"))
 {
     builder.Services
@@ -61,4 +62,5 @@ if (!app.Environment.IsDevelopment())
 app.UseIdentity();
 
 app.Run();
+
 public abstract partial class Program;
