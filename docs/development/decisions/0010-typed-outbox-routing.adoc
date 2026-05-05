@@ -49,9 +49,6 @@ destination-based queue naming (each queue named after its consumer).
 | Organisation WebApi
 | `PponGenerated`, `PersonRemovedFromOrganisation`, `PersonScopesUpdated`
 
-| `user-management.fifo`
-| User Management API
-| `OrganisationRegistered`, `OrganisationUpdated`, `OrganisationApproved`, `PersonInviteClaimed`, `PersonRemovedFromOrganisation`, `PersonScopesUpdated`
 |===
 
 === Typed routing
@@ -69,19 +66,11 @@ Example configuration:
 {
   "Aws": {
     "OutboxRoutes": [
-      { "MessageType": "OrganisationRegistered", "QueueUrl": "...entity-verification.fifo", "MessageGroupId": "EntityVerification" },
-      { "MessageType": "OrganisationRegistered", "QueueUrl": "...user-management.fifo", "MessageGroupId": "UserManagement" }
+      { "MessageType": "OrganisationRegistered", "QueueUrl": "...entity-verification.fifo", "MessageGroupId": "EntityVerification" }
     ]
   }
 }
 ----
-
-=== User Management outbox processor
-
-A new `outbox-processor-user-management` service drains the `user_management_outbox` PostgreSQL channel.
-The `UserManagementDbContext` branch is added to `CO.CDP.OutboxProcessor/Program.cs`.
-The UM API sets `Features:OutboxProcessorBackgroundService = true` so the in-process background drainer
-does not compete with the dedicated processor.
 
 == Rejected alternatives
 
@@ -95,6 +84,6 @@ services able to start without warning. Fail-fast is preferable to silent miscon
 * Producers must declare an explicit route for every event type they publish.
   New event types without a matching route cause a runtime exception on the first publish attempt.
 * Silent message deletion at consumers is eliminated for the listed event types.
-* All queues follow destination-based naming (named after their consumer), consistent with `user-management.fifo` and `av-scanner.fifo`.
+* All queues follow destination-based naming (named after their consumer), consistent with `av-scanner.fifo`.
 * Future fan-out to many consumers should be implemented using SNS or EventBridge rather than by adding
   more `OutboxRoutes` entries, and should be recorded as a separate ADR.
