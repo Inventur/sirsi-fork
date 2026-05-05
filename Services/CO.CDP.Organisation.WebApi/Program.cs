@@ -152,15 +152,12 @@ builder.Services.AddScoped<IUseCase<Guid, GetParentOrganisationsResponse>, GetPa
 builder.Services.AddScoped<IAuthorizationHandler, OrganisationScopeAuthorizationHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ApiKeyScopeAuthorizationHandler>();
 
-// --- Application Registry ---
-var appRegistryConnectionString = builder.Configuration.GetConnectionString("ApplicationRegistryDatabase")
-    ?? "Host=localhost;Database=application_registry;Username=postgres;Password=postgres";
-
+// --- Application Registry (shares the same database as OrganisationInformation) ---
 builder.Services.AddScoped<AuditSaveChangesInterceptor>();
 
 builder.Services.AddDbContext<ApplicationRegistryContext>((sp, options) =>
 {
-    options.UseNpgsql(appRegistryConnectionString);
+    options.UseNpgsql(connectionString);
     options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
 });
 
